@@ -1,0 +1,10 @@
+.env
+_vendor/
+data/
+uploads/
+__pycache__/
+*.pyc
+tests/
+.git/
+*.zip
+_tools/
