@@ -1,0 +1,14 @@
+{% extends 'tutor_base.html' %}{% block title %}配置管理{% endblock %}{% block content %}
+<div class="page-head"><div><div class="eyebrow">CAMPUSCLAW</div><h1>{{ g.user['class_id'] }}班应用配置</h1><p>为 AI 应用选择提示词模板、知识库材料、技能和外部工具。</p></div></div><p id="manage-error" class="error" role="alert"></p>
+<div class="manage-grid"><section class="knowledge-card"><h2>提示词模板</h2><form id="template-form"><input id="template-id" type="hidden"><label for="template-name">模板名称</label><input id="template-name" maxlength="64" required><label for="template-content">提示词内容</label><textarea id="template-content" rows="5" maxlength="2000" required></textarea><label><input id="template-enabled" type="checkbox" checked> 启用</label><div class="button-row"><button class="primary" type="submit">保存模板</button><button id="reset-template" class="outline" type="button">新增</button></div></form><div id="template-list"></div></section>
+<section class="knowledge-card"><h2>技能文件</h2><form id="skill-form"><label for="skill-file">UTF-8 .txt / .md 单一文本文件</label><input id="skill-file" type="file" accept=".txt,.md" required><input id="skill-id" type="hidden"><button class="primary full" type="submit">上传 / 替换技能</button><button class="outline" id="reset-skill" type="button">新增技能文件</button></form><p class="muted">使用 SKILL.md：两个 --- 之间填写 name、description，后面填写 Markdown 技能正文。也兼容原课程的中文字段格式。</p><pre>---
+name: history-lab
+description: 当用户需要设计历史探究课程时使用
+---
+
+# 历史探究实验室
+
+## 重要提示
+先询问教学对象、历史主题和课时，再设计探究活动。</pre><div id="skill-list"></div></section>
+<section class="knowledge-card"><h2>AI 应用（助手）</h2><form id="agent-form"><input id="agent-id" type="hidden"><label for="agent-name">名称（班内唯一，最多64字）</label><input id="agent-name" maxlength="64" required><label for="agent-template">提示词模板</label><select id="agent-template"></select><p class="muted">选择后使用该模板；模板停用后使用下方角色设定。</p><label for="agent-prompt">角色设定（可为空，最多2000字）</label><textarea id="agent-prompt" maxlength="2000" rows="4"></textarea><label><input id="agent-enabled" type="checkbox" checked> 启用</label><label for="agent-skills">绑定本班技能（可多选）</label><select id="agent-skills" multiple size="4"></select><label for="agent-materials">绑定本班材料（可多选）</label><select id="agent-materials" multiple size="4"></select><label for="agent-tools">外部工具 · MCP（可多选）</label><select id="agent-tools" multiple size="3"></select><p class="muted">仅向模型开放已选工具；模型按需调用计算器或北京时间工具。</p><div class="button-row"><button class="primary" type="submit">保存助手</button><button class="outline" id="reset-agent" type="button">新增</button></div></form><div id="agent-list"></div></section></div>
+{% endblock %}{% block scripts %}<script type="module" src="{{ url_for('static',filename='manage.mjs') }}"></script>{% endblock %}

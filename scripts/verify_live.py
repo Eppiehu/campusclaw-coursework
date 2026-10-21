@@ -43,6 +43,15 @@ def login(opener, username, password):
     return call(opener, "/login", "POST", urlencode({"username": username, "password": password}).encode(), {"Content-Type": "application/x-www-form-urlencoded"})
 
 
+def token_login(opener, username, password):
+    status, headers, body = call(
+        opener, "/login", "POST",
+        json.dumps({"username": username, "password": password}).encode(),
+        {"Content-Type": "application/json"},
+    )
+    return status, headers, json.loads(body) if status == 200 else {}
+
+
 def upload(opener, title, filename, content, extra=None):
     boundary = "----CampusClaw" + uuid.uuid4().hex
     parts = []
@@ -105,9 +114,13 @@ def main():
         status, _, _ = login(student_b, "student_b1", os.environ.get("DEMO_STUDENT_PASSWORD", "Student123!"))
         check("student_b1 登录", status == 302)
 
-        status, _, body = call(student_a, "/api/materials?class_id=B")
+        cookie_only_status, _, _ = call(student_a, "/api/materials")
+        check("材料 API 仅有 Session Cookie 时返回 401", cookie_only_status == 401)
+        token_status, _, token_body = token_login(student_a, "student_a1", os.environ.get("DEMO_STUDENT_PASSWORD", "Student123!"))
+        token = token_body.get("token", "")
+        status, _, body = call(student_a, "/api/materials?class_id=B", headers={"Authorization": "Bearer " + token})
         materials = json.loads(body)["materials"] if status == 200 else []
-        check("A 班看不到 B 班材料", status == 200 and bool(materials) and all(item["class_id"] == "A" for item in materials))
+        check("A 班看不到 B 班材料", token_status == 200 and bool(token) and status == 200 and bool(materials) and all(item["class_id"] == "A" for item in materials))
 
         status, _, body = call(teacher, f"/materials/{a_id}/download")
         check("teacher_a 下载 A 班材料", status == 200 and "A班演示材料" in body.decode("utf-8"))

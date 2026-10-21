@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>知识问答 · CampusClaw</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<header class="topbar"><div class="brand"><span class="brand-mark">CC</span> CampusClaw <span class="pill">{{ g.user['class_id'] }}班</span></div><div class="top-right"><a class="outline" href="/tutor">流式会话</a>{% if g.user['role']=='teacher' %}<a class="outline" href="/manage">配置管理</a>{% endif %}<a class="outline" href="{{ url_for('materials.list_page') }}">本班材料</a><span><strong>{{ g.user['username'] }}</strong> · {{ '教师' if g.user['role']=='teacher' else '学生' }}</span><form method="post" action="{{ url_for('auth.logout') }}"><button class="outline" type="submit">登出</button></form></div></header>
+<main class="container knowledge-page">
+  <div class="page-head"><div><div class="eyebrow">CAMPUSCLAW</div><h1>{{ g.user['class_id'] }}班知识问答</h1><p>{{ g.user['username'] }} · {{ '教师' if g.user['role']=='teacher' else '学生' }}</p></div></div>
+  <div class="knowledge-card">
+    <div class="knowledge-tabs"><button class="knowledge-tab active" type="button" data-mode="search">知识检索</button><button class="knowledge-tab" type="button" data-mode="ask">知识问答</button></div>
+    <form id="knowledge-form"><label for="search-mode">检索方式</label><select id="search-mode"><option value="hybrid">Hybrid (RRF)</option><option value="keyword">Keyword</option><option value="vector">Vector</option></select><label id="question-label" for="knowledge-question">检索本班知识</label><div class="knowledge-input"><input id="knowledge-question" name="question" type="text" maxlength="300" required placeholder="例如：磁铁能吸木块吗？"><button class="primary" id="knowledge-submit" type="submit">检索</button></div></form>
+    <p class="error" id="knowledge-error" role="alert"></p>
+    <section id="knowledge-output" class="knowledge-output" aria-live="polite"><p class="muted">输入问题后，仅检索当前班级的资料。</p></section>
+  </div>
+</main>
+<script src="{{ url_for('static', filename='auth.js') }}" defer></script>
+<script src="{{ url_for('static', filename='knowledge.js') }}" defer></script>
+</body></html>

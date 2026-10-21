@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-21",
+  "unit_tests": {
+    "tests": 48,
+    "failures": 0
+  },
+  "api_tests": {
+    "tests": 31,
+    "failures": 0,
+    "skipped": 0
+  },
+  "models": "mock for regression; real DeepSeek in separate live evidence",
+  "not_run": [
+    "browser click and visual acceptance",
+    "Docker Compose build/start",
+    "Nginx deployment"
+  ]
+}

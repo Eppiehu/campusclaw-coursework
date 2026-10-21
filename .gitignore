@@ -4,5 +4,9 @@ __pycache__/
 data/
 uploads/
 _vendor/
+_model_cache/
 cookies.txt
 _tools/
+apitest/report/
+tmp/
+.qdrant-initialized

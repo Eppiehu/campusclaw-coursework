@@ -1,136 +1,131 @@
-# CampusClaw · 课程项目
+# CampusClaw · AI 应用平台
 
-## 第四课：OpenSpec 变更描述
+以用户提供的《第5课：提示词、AI技能与流式会话》正文为基础，按2026-10-21补充的课堂照片加入可复用提示词模板、标准SKILL.md及MCP外部工具。
 
-本次变更：**限定班级范围的知识库检索，支持内容溯源**。
+- [修复前差异表](docs/lesson5-gap-audit.md)
+- [逐层验收与场景记录](docs/lesson5-verification.md)
+- [API 测试说明](apitest/README.md)
+- [五项课堂验证及本次补充](docs/platform-supplement-verification.md)
+- [个人项目阶段性验收PDF](output/pdf/1021_CampusClaw_个人项目阶段性验收报告.pdf)
+- [实际LLM请求与返回证据](docs/evidence/20261021-llm-requests.json)
 
-变更目录：[`openspec/changes/add-class-scoped-knowledge-search/`](openspec/changes/add-class-scoped-knowledge-search/)
+## 标准运行方式
 
-- [proposal.md](openspec/changes/add-class-scoped-knowledge-search/proposal.md)：变更动机、范围和影响。
-- [design.md](openspec/changes/add-class-scoped-knowledge-search/design.md)：SQLite 检索、片段结构、来源定位、迁移与可选向量库方案。
-- [检索规范](openspec/changes/add-class-scoped-knowledge-search/specs/class-knowledge-search/spec.md)：登录、服务器端班级过滤、排序、输入限制、索引一致性。
-- [溯源规范](openspec/changes/add-class-scoped-knowledge-search/specs/knowledge-source-traceability/spec.md)：原文片段、字符范围、行号、哈希、来源页和原文件下载。
-- [tasks.md](openspec/changes/add-class-scoped-knowledge-search/tasks.md)：后续 Apply 的实施与验收清单。
+运行后端仍为 Python + Flask；Jinja 页面保留 Flask signed-cookie Session。第5课运行要求 MySQL，正文、offset、状态在 SQL，向量及 class_id/material_id payload 在 Qdrant。SQLite 仅作隔离回归 fixture 和旧课程数据导入源，应用正式运行不会静默退回 SQLite。
 
-**状态：变更描述完成，检索功能尚未实现。** 文档中的接口与参数是基于本次作业基本要求提出的方案。必需版本使用 SQLite 关键词检索；向量数据库作为可选扩展，不替换现有 Flask/SQLite 业务后端。
-
-2026-09-29 使用官方 OpenSpec CLI 1.13.2 实际执行并通过：
-
-```text
-openspec validate add-class-scoped-knowledge-search --strict --no-interactive
-Change 'add-class-scoped-knowledge-search' is valid
-```
-
-以下为已经实现的第二课系统说明。
-
-按《互联网软件开发技术与实践》第 2 课提供的规约实现：Flask 3 + SQLite 3 + Flask signed-cookie session + Docker Compose。范围限于登录、教师/学生角色、A/B 班隔离、教师上传 `.txt`/`.md` 并写入知识库表、`/health`。
-
-## 项目结构
-
-```text
-campusclaw/
-├── app/
-│   ├── __init__.py        # Flask 配置与健康检查
-│   ├── auth.py            # 登录、登出、身份校验
-│   ├── db.py              # SQLite 连接
-│   ├── knowledge.py       # UTF-8 文本解析
-│   ├── materials.py       # 班级查询、上传、下载
-│   ├── static/
-│   └── templates/
-├── scripts/init_db.py    # 表结构与演示数据
-├── tests/
-├── Dockerfile
-├── docker-compose.yml
-├── docker-entrypoint.sh
-├── .env.example
-└── requirements.txt
-```
-
-运行后生成 `data/app.db` 和 `uploads/`，这两个目录不提交。没有预先存在的项目密码，因此演示初始化密码是：
-
-| 用户名 | 密码 | 身份 | 班级 |
-|---|---|---|---|
-| `teacher_a` | `Teacher123!` | 教师 | A 班 |
-| `student_a1` | `Student123!` | 学生 | A 班 |
-| `student_b1` | `Student123!` | 学生 | B 班 |
-
-数据库只保存 Werkzeug 生成的 `password_hash`，不保存明文密码。演示密码仅用于本地课程作业。可在首次初始化前通过 `DEMO_TEACHER_PASSWORD` 和 `DEMO_STUDENT_PASSWORD` 环境变量修改。
-
-## Docker Compose 启动
-
-在本目录执行：
+复制 `.env.example` 为 `.env`，填写随机 SECRET_KEY、MYSQL_PASSWORD、MYSQL_ROOT_PASSWORD、OPENAI_API_KEY；密钥不进 Git。Compose 自动配置容器内 DATABASE_URL 和 QDRANT_URL：
 
 ```powershell
-Copy-Item .env.example .env
-$key = python -c "import secrets; print(secrets.token_hex(32))"
-(Get-Content .env) -replace '^SECRET_KEY=.*$', "SECRET_KEY=$key" | Set-Content .env
 docker compose up --build -d
-docker compose ps
-curl.exe -i http://localhost:8080/health
 ```
 
-如果 `python` 不在 PATH，请使用已安装的 Python 绝对路径生成密钥。`SECRET_KEY` 必须通过 `.env` 环境变量提供；空值会使应用拒绝启动。打开 <http://localhost:8080/login>。首次启动自动初始化 `data/app.db`；`docker compose down` 后再次启动保留数据。
+外部端口仍为 8080。首次 MySQL 初始化会复制存在的 `data/app.db` 中的班级、用户、材料和知识条目，保留原 SQLite 文件；只迁移到空用户库。第5课切片迁移幂等执行一次，改为800/80，Qdrant索引按SQL chunk id建立。
 
-当前机器如果没有 Docker，可用本地 Flask 开发服务器预览（正式作业的标准启动仍为上面的 Compose）：
+当前机器未安装 Docker。本次实际验收额外在项目忽略目录 `_tools/services` 使用官方便携 MySQL 和 Qdrant，经 WSL 运行；本地 `.env` 指向 MySQL回环端口3316、Qdrant6333。旧NTFS向量索引在重启后出现读取错误，已保留旧目录，并在WSL的Linux文件系统新建运行索引、从MySQL正文重建。Docker Compose构建/启动仍需单独验收。
+
+不通过 Compose 运行时，先准备 MySQL/Qdrant并设置 DATABASE_URL，再执行：
 
 ```powershell
 python -m pip install -r requirements.txt
-python scripts/init_db.py
-$env:SECRET_KEY = ((Get-Content .env | Where-Object { $_ -like 'SECRET_KEY=*' }) -split '=',2)[1]
+Get-Content .env | Where-Object { $_ -match '^[A-Z_]+=' } | ForEach-Object { $parts = $_ -split '=',2; [Environment]::SetEnvironmentVariable($parts[0],$parts[1],'Process') }
+python scripts/init_mysql.py
 python -m flask --app 'app:create_app()' run --host 127.0.0.1 --port 8080
 ```
 
-## 作业截图与 HTTP 证据
+## 入口与账号
 
-### 1. 教师登录后的首页
+- `/login`：登录；`/materials`：材料；`/knowledge`：第4课单轮检索/问答。
+- `/manage`：教师管理提示词模板、技能文件、AI应用及材料/技能/MCP工具绑定。
+- `/tutor`：选择本班启用Agent，创建私有会话并流式提问。
+- `/swagger`：本地Swagger UI；`/openapi.json`：由注册路由与处理函数注解生成。
 
-浏览器打开 <http://localhost:8080/login>，使用 `teacher_a / Teacher123!` 登录。截图 `/materials` 页面，顶部同时显示 `teacher_a`、`教师`、`A班`，左栏有 `A班演示材料`。
+全新MySQL初始化后，每班自动内置“数学学习助手”和“语文阅读助手”，分别绑定本班对应提示词模板和内置解题引导技能；材料由教师自行选择。初始化幂等，后续启动不会覆盖教师的修改、停用或删除。
 
-### 2. 登录请求、响应及完整 HTTP 响应
+| 用户 | 演示密码 | 角色/班级 |
+|---|---|---|
+| teacher_a | Teacher123! | 教师/A |
+| student_a1 | Student123! | 学生/A |
+| student_b1 | Student123! | 学生/B |
 
-Chrome 按 F12 → Network，勾选 Preserve log，再提交登录表单。选择 `POST http://localhost:8080/login`：
+## JWT 与权限
 
-- Method: `POST`
-- Request `Content-Type`: `application/json`
-- Request Payload：`{"username":"teacher_a","password":"Teacher123!"}`
-- 成功状态：`200 OK`；Response `Content-Type: application/json`
-- Response Body：`{"username":"teacher_a","role":"teacher","class_id":"A"}`；关键响应头：`Set-Cookie: session=...; HttpOnly; Path=/; SameSite=Lax`
-- `Set-Cookie` 中的 `session` 值由 Flask 签名；其值每次可能不同。
+JWT使用HS256，只包含 `sub/jti/iat/exp`，有效期30分钟。每次API认证都检查吊销表，再按sub查询数据库，取得当前role/class_id。前端使用localStorage和Bearer请求头；API fetch不发Cookie。重新登录时携带旧Token，服务端吊销其尚未过期的jti后签发新Token。登出写入token_revocations并清除前端Token及Session。
 
-在 PowerShell 中打印完整响应头（`curl.exe` 避免 `curl` 别名）：
+跨班/不存在Agent、Skill、他人或他班Conversation使用相同404；学生写教师接口403；Search显式跨班参数返回200和空hits。
 
-```powershell
-curl.exe -i http://localhost:8080/login -H 'Content-Type: application/json' --data-binary '{"username":"teacher_a","password":"Teacher123!"}'
+## 技能、Agent与会话
+
+Skill是单一UTF-8 `.txt`/`.md` 文件。标准格式与课堂照片一致，YAML头部仅含name和description，第二个---后是Markdown正文：
+
+```markdown
+---
+name: history-lab
+description: 当用户需要设计历史探究课程、进行史料研读时使用
+---
+
+# 历史探究实验室
+
+## 重要提示
+先询问教学对象与历史主题，再设计史料研读活动。
 ```
 
-命令行会包含密码，课程演示环境使用后请清理终端历史；正式环境不要使用该演示密码。
-浏览器页面通过 `fetch` 发送 JSON，收到 200 后再跳转 `/materials`；原有 form 编码请求仍兼容并返回 302。
+`demo/history-lab/SKILL.md`采用照片中的名称和描述；照片未展示的正文由本项目编写，文件已注明。description用于确定性关键词路由；命中后仅将完整Markdown正文注入system，头部及其他候选技能不整体发送。中文描述使用去重二字词、英文单词匹配，排除部分通用词；该路由不调用LLM，也不执行文件中的代码。名称最多32字，描述与正文分别最多2000字，整文件最多8000字。
 
-### 3. 登录后获取材料时识别当前用户
+兼容原中文格式，原有路由规则和种子不变：
 
-登录后在 `/materials` 页面点击底部“获取本班材料 API”。在 Network 选择 `GET http://localhost:8080/api/materials`，在 Request Headers 中截取 `Cookie: session=...`，在 Response/Preview 中截取 `current_user` 与材料列表。登录请求的 Response Headers 中截图 `Set-Cookie: session=...`。
+```text
+名称：数学解题引导
+适用条件：数学,方程,计算,几何
+资料：数学
+工具：knowledge_search
+启用：是
 
-流程：`POST /login` 校验哈希 → Flask 在签名 session 中写入 `user_id`、`role`、`class_id` → 浏览器保存 `session` cookie → 后续请求自动携带 `Cookie` → Flask 验证签名 → 服务端读取 session 并核对数据库用户 → SQL `WHERE class_id = 当前用户 class_id`。即使请求带 `?class_id=B`，服务端也不使用它。
-
-本地验证篡改查询参数：
-
-```powershell
-curl.exe -c cookies.txt -X POST http://localhost:8080/login -d "username=student_a1&password=Student123!"
-curl.exe -b cookies.txt "http://localhost:8080/api/materials?class_id=B"
+只指出学生错在哪一步、下一步检查什么，不给最终答案、选项、得数或完整过程。
 ```
 
-第二条响应仍只含 A 班材料。
+严格拒绝重复/未知字段、缺必填/正文及非法工具；限制8000/32/120/2000/32字。提供数学、语文解题引导种子。候选技能仅取本班、当前Agent已绑定且enabled；关键词按课件分隔符切分，lowercase substring每个计1分，同分id小者优先，0分不选，最多一个。
 
-## 验收命令
+Agent名称最多64字、班内唯一；prompt最多2000字，空值使用默认角色。创建会话只能选择本班启用Agent；会话agent_id锁定。已有会话可继续使用后来停用的Agent，但每轮重新读取其当前技能/材料绑定。标题从“新的提问”改为首个问题前24字，后续只更新时间。
+
+提示词模板按班级独立管理，支持创建、编辑、启停、删除及多个Agent复用。Agent绑定启用模板时，每轮从数据库读取模板正文作为角色提示；模板停用则回退到Agent自己的prompt。跨班绑定404，学生写操作403，仍有绑定的模板删除409。
+
+## MCP外部工具
+
+`/manage`可为每个AI应用选择MCP工具；`GET /api/mcp/tools`实际进行初始化和工具发现。默认工具在独立stdio进程中提供`calculator`和`current_time`，支持MCP `2025-06-18`的initialize、initialized、tools/list及tools/call。协议依据：[MCP stdio](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports)、[工具协议](https://modelcontextprotocol.io/specification/2025-06-18/server/tools)。
+
+模型请求仅携带当前Agent所绑定工具的名称、描述和JSON Schema。DeepSeek流式返回tool_calls后，后端检查绑定、参数Schema和数量，再向MCP发送tools/call；结果作为role=tool写入下一次模型请求，继续流式回答。最多3轮模型请求、每轮4次工具调用；末轮禁止继续调用。未绑定工具会被拒绝。MCP工具进程不继承模型密钥、数据库凭据或用户Token。
+
+默认计算器只解析有限长度的数字四则运算；没有eval、任意代码执行、文件访问或网络访问。管理员可通过`.env`的`MCP_SERVER_COMMAND`配置其他stdio服务器（JSON命令参数数组），并用`MCP_ALLOWED_TOOLS`指定允许开放的名称。当前未实现远程HTTP MCP或网页编辑服务器命令。
+
+## 检索与提示词
+
+默认800字符、80重叠，支持auto/custom/hierarchy；offset对应原文且end不包含。keyword/vector各最多SEARCH_MAX_RESULTS（默认20）；Qdrant使用班级和材料filter，Cosine阈值0.35。Hybrid用RRF：每个排名贡献 `1/(60+rank)`，不再加权原始分数。
+
+会话检索取“当前用户班级 ∩ Agent绑定材料 ∩ 命中Skill的subject_text标题过滤”，最终最多4个非空chunk，引用连续编号。向量使用本地BAAI/bge-small-zh-v1.5，聊天沿用DeepSeek兼容接口。
+
+System仅组装Agent角色、Skill说明、资料约束、模型身份和dataBoundary。检索标题和正文放在user数据消息，每片最多800字。历史仅读末6条，正文截取500字，只允许user/assistant并跳过空正文或非法role。
+
+第4课 `/api/ask`（兼容`/api/knowledge/ask`）无依据时不调用模型；第5课Conversation无依据仍调用模型，citations为空且输出不含[n]引用。
+
+## 真流式SSE
+
+`POST /api/conversations/{id}/messages` 返回text/event-stream：首帧meta（skill、citations）→ 多个新增delta → assistant、citations、skill_name成功落库后的done。首帧前使用真实HTTP错误码，首帧后失败发送error；部分内容失败仍保存。前端用fetch POST、response.body和ReadableStream解析SSE，不用EventSource或整段答案逐字动画。
+
+Response设置X-Accel-Buffering:no、Cache-Control:no-cache、Connection:keep-alive。可选Nginx样例在`deploy/nginx.conf`；标准Compose当前直接暴露Gunicorn。
+
+## 测试
 
 ```powershell
 python -m unittest discover -s tests -v
-python scripts/verify_live.py
-docker compose ps
-docker compose logs --tail=100 app
-curl.exe -i http://localhost:8080/health
+node tests/test_sse_parser.mjs
+python apitest/run_all.py
 ```
 
-## 当前环境验收记录
+apitest按URL组织，HTML报告写入`apitest/report/index.html`且不进Git。自动用例的DeepSeek全部mock；Qdrant测试替身仅在TESTING中可注入。真实存储、真实模型分别显式开启：
 
-2026-09-23 本地测试：`python -m unittest discover -s tests -v` 为 **PASS（11/11）**；JSON 登录实测返回 200、指定 JSON 字段及 `Set-Cookie`，带 Cookie 访问 `/materials` 返回 200，失败返回 JSON 401。运行中的 Flask 服务通过 `python scripts/verify_live.py` 逐项 HTTP 验收 **PASS（14/14）**，涵盖原有 form 登录、班级隔离、txt/md 上传、PDF 拒绝、学生 403、同班下载与跨班拒绝、健康检查。Docker build 与 Compose 启动为 **NOT RUN**：当前主机未安装/未提供 `docker` 命令，执行 `docker compose build` 报命令不存在，容器构建没有开始。容器持久化测试因此也是 **NOT RUN**。
+```powershell
+python scripts/verify_storage_live.py --live
+python apitest/live_smoke.py --live
+```
+
+实际结果及NOT RUN项目见验收记录。`openspec/`和`output/pdf/`保留此前课程材料，不作为第5课规范。

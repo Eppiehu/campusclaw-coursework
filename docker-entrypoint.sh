@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
-if [ ! -f /app/data/app.db ]; then
+if [ -n "${DATABASE_URL:-}" ]; then
+  python scripts/init_mysql.py
+else
   python scripts/init_db.py
 fi
-exec gunicorn --bind 0.0.0.0:8080 --workers 2 'app:create_app()'
+exec gunicorn --bind 0.0.0.0:8080 --workers 2 --threads 4 --timeout 120 'app:create_app()'

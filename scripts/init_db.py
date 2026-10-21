@@ -6,6 +6,10 @@ from pathlib import Path
 
 from werkzeug.security import generate_password_hash
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from app.chunks import backfill_chunks
+from app.lesson5_schema import migrate
+
 ROOT = Path(__file__).resolve().parent.parent
 DB_FILE = Path(os.environ.get("DATABASE", ROOT / "data" / "app.db"))
 
@@ -38,6 +42,18 @@ CREATE TABLE IF NOT EXISTS knowledge_entries (
     content TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS knowledge_chunks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+    class_id TEXT NOT NULL REFERENCES classes(id),
+    chunk_index INTEGER NOT NULL,
+    start_offset INTEGER NOT NULL,
+    end_offset INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    embedding TEXT,
+    UNIQUE(material_id, chunk_index)
+);
+CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_class ON knowledge_chunks(class_id);
 CREATE TABLE IF NOT EXISTS lectures (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     class_id TEXT REFERENCES classes(id),
@@ -63,6 +79,7 @@ CREATE TABLE IF NOT EXISTS skills (
 def init_database():
     DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DB_FILE)
+    connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     try:
         connection.executescript(SCHEMA)
@@ -99,6 +116,9 @@ def init_database():
                     "INSERT INTO knowledge_entries (material_id, class_id, content) VALUES (?, ?, ?)",
                     (cursor.lastrowid, class_id, text),
                 )
+        migrate(connection)
+        with connection:
+            backfill_chunks(connection)
     finally:
         connection.close()
 

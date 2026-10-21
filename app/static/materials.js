@@ -1,4 +1,6 @@
 const modal = document.querySelector('#upload-modal');
+const accessToken = localStorage.getItem('access_token');
+const apiHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 document.querySelector('#open-upload')?.addEventListener('click', () => { modal.hidden = false; });
 document.querySelector('#close-upload')?.addEventListener('click', () => { modal.hidden = true; });
 modal?.addEventListener('click', event => { if (event.target === modal) modal.hidden = true; });
@@ -7,7 +9,7 @@ document.querySelector('#search')?.addEventListener('input', event => {
   document.querySelectorAll('.item').forEach(item => { item.hidden = !item.textContent.toLocaleLowerCase().includes(query); });
 });
 document.querySelectorAll('.item').forEach(item => item.addEventListener('click', async () => {
-  const response = await fetch(`/api/materials/${item.dataset.id}`, { credentials: 'same-origin' });
+  const response = await fetch(`/api/materials/${item.dataset.id}`, { credentials: 'omit', headers: apiHeaders });
   if (!response.ok) { alert('无法读取该材料'); return; }
   const data = await response.json();
   document.querySelectorAll('.item').forEach(row => row.classList.toggle('active', row === item));
@@ -17,8 +19,11 @@ document.querySelectorAll('.item').forEach(item => item.addEventListener('click'
   panel.querySelector('#download-link').href = `/materials/${data.material.id}/download`;
 }));
 document.querySelector('#refresh-api')?.addEventListener('click', async () => {
-  const response = await fetch('/api/materials', { credentials: 'same-origin' });
+  const response = await fetch('/api/materials', { credentials: 'omit', headers: apiHeaders });
   if (!response.ok) { alert('获取材料失败'); return; }
   const data = await response.json();
   alert(`当前用户：${data.current_user.username}；班级：${data.current_user.class_id}；本班材料：${data.materials.length} 份。请在 Network 中查看此请求。`);
 });
+if (accessToken) {
+  fetch('/api/materials', { credentials: 'omit', headers: apiHeaders });
+}

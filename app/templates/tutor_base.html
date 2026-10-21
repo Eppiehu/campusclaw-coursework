@@ -1,0 +1,4 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}学习助手{% endblock %} · CampusClaw</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head><body>
+<header class="topbar"><div class="brand"><span class="brand-mark">CC</span> CampusClaw <span class="pill">{{ g.user['class_id'] }}班</span></div><nav class="top-right"><a href="/materials">材料</a><a href="/knowledge">知识问答</a><a href="/tutor">流式会话</a>{% if g.user['role']=='teacher' %}<a href="/manage">配置管理</a>{% endif %}<a href="/swagger">API</a><span>{{ g.user['username'] }}</span><form action="/logout" method="post"><button class="outline">登出</button></form></nav></header>
+<main class="container">{% block content %}{% endblock %}</main>
+<script src="{{ url_for('static',filename='auth.js') }}" defer></script>{% block scripts %}{% endblock %}</body></html>

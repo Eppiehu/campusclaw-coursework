@@ -1,0 +1,5 @@
+{% extends 'tutor_base.html' %}{% block title %}流式会话{% endblock %}{% block content %}
+<div class="page-head"><div><div class="eyebrow">CAMPUSCLAW</div><h1>{{ g.user['class_id'] }}班学习助手</h1><p>{{ g.user['username'] }} · {{ '教师' if g.user['role']=='teacher' else '学生' }}</p></div></div>
+<div class="tutor-layout"><aside class="knowledge-card"><label for="agent-select">选择助手</label><select id="agent-select"><option value="">请选择已启用助手</option></select><button id="new-conversation" class="primary full">新建会话</button><p class="muted" id="locked-agent"></p><div id="conversation-list" class="conversation-list"></div></aside>
+<section class="knowledge-card"><h2 id="conversation-title">新的提问</h2><p id="stream-error" class="error" role="alert"></p><div id="messages" aria-live="polite"></div><form id="chat-form"><label for="chat-question">你的问题</label><textarea id="chat-question" maxlength="500" rows="3" required placeholder="说说你的问题，以及你卡住的步骤…"></textarea><button id="send-message" class="primary full" disabled>发送</button></form></section></div>
+{% endblock %}{% block scripts %}<script type="module" src="{{ url_for('static',filename='tutor.mjs') }}"></script>{% endblock %}
