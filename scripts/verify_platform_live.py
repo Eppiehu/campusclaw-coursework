@@ -29,6 +29,8 @@ def frames(body):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--live", action="store_true")
+    parser.add_argument("--output", type=Path, help="Optional verification record destination")
+    parser.add_argument("--keep-demo", action="store_true", help="Keep only this run's demo records for UI screenshots")
     args = parser.parse_args()
     if not args.live:
         parser.error("Actual model calls require --live")
@@ -83,7 +85,10 @@ def main():
         sh = login(student, "student_a1", "DEMO_STUDENT_PASSWORD", "Student123!")
         template = create("/api/prompt-templates", "template", {"name": tag,
             "content": "你是历史探究课程助手。模板验证标记：先询问教学对象、主题和课时。引用仅使用本轮材料编号。回答简洁。"})
-        skill = create("/api/skills", "skill", file={"file": (io.BytesIO((ROOT / "demo/history-lab/SKILL.md").read_bytes()), "SKILL.md")})
+        skill_source = (ROOT / "demo/history-lab/SKILL.md").read_text(encoding="utf-8")
+        skill_name = "history-lab-" + datetime.now().strftime("%m%d%H%M%S")
+        skill_source = skill_source.replace("name: history-lab", "name: " + skill_name, 1)
+        skill = create("/api/skills", "skill", file={"file": (io.BytesIO(skill_source.encode()), "SKILL.md")})
         text = "\n\n".join(f"## 史料片段{index}\n历史探究时需要比较史料来源与观点。" + "核对史料出处、形成时间、作者立场；区分事实与推测。" * 28 for index in range(10))
         material_response = teacher.post("/api/materials/upload", headers=th,
             data={"title": tag + "历史资料", "file": (io.BytesIO(text.encode()), "history.md")})
@@ -109,9 +114,9 @@ def main():
         assert total > len(citations)
         assert len(text) > len(body["messages"][-1]["content"])
         check(2, f"绑定资料共{total}片，本轮仅{len(citations)}片进入user消息；未发送整个知识库。班级隔离另有回归断言。")
-        assert events[0][1]["skill"] == "history-lab"
+        assert events[0][1]["skill"] == skill_name
         assert skill["description"] in body["messages"][0]["content"]
-        assert "name: history-lab" not in body["messages"][0]["content"]
+        assert "name: " + skill_name not in body["messages"][0]["content"]
         check(3, "标准SKILL.md按description路由；完整Markdown正文进入system，YAML头部不整体发送。")
         teacher.patch(f"/api/skills/{skill['id']}", headers=th, json={"enabled": False})
         disabled, events, _ = ask(cid, "请用历史探究资料设计一次史料研读课，开始前需要确认什么？")
@@ -136,7 +141,7 @@ def main():
         raise
     finally:
         # Remove only records created by this explicit verification run.
-        if "th" in locals():
+        if "th" in locals() and not args.keep_demo:
             for identifier in reversed(created["conversations"]):
                 student.delete(f"/api/conversations/{identifier}", headers=sh)
             for identifier in reversed(created["agents"]):
@@ -161,7 +166,10 @@ def main():
                             path.unlink(missing_ok=True)
             for identifier in created["templates"]:
                 teacher.delete(f"/api/prompt-templates/{identifier}", headers=th)
-        target = ROOT / "apitest/report/platform-live-evidence.json"
+        if args.keep_demo:
+            evidence["demo_records"] = created
+            evidence["demo_tag"] = tag
+        target = args.output or ROOT / "apitest/report/platform-live-evidence.json"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
         print("Evidence:", target)

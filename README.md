@@ -6,6 +6,9 @@
 - [逐层验收与场景记录](docs/lesson5-verification.md)
 - [API 测试说明](apitest/README.md)
 - [五项课堂验证及本次补充](docs/platform-supplement-verification.md)
+- [阶段性验收PDF（2026-10-24，13页12张实际截图）](output/pdf/CampusClaw_阶段性验收报告_截图版.pdf)
+- [截图版完整LLM/MCP请求与返回证据](docs/evidence/20261024-llm-requests.json)
+- [原始截图与校验清单](output/screenshots/20261024/)
 - [个人项目阶段性验收PDF](output/pdf/1021_CampusClaw_个人项目阶段性验收报告.pdf)
 - [实际LLM请求与返回证据](docs/evidence/20261021-llm-requests.json)
 
