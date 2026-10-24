@@ -8,7 +8,7 @@
     {
       "figure": 1,
       "file": "03-built-in-ai-apps.jpg",
-      "caption": "真实应用列表区域：包含内置数学学习助手、语文阅读助手。",
+      "caption": "应用列表，包括数学学习助手和语文阅读助手。",
       "source_url": "http://127.0.0.1:8080/manage",
       "sha256": "2106e422dc1da4983eb3abd71c3e7a15698ad5bfb5921107b3008899e97fe2dc",
       "size": [
@@ -25,7 +25,7 @@
     {
       "figure": 2,
       "file": "04-mcp-binding.jpg",
-      "caption": "真实配置中的MCP选择区，calculator处于选中状态。",
+      "caption": "MCP工具绑定，已选择calculator。",
       "source_url": "http://127.0.0.1:8080/manage",
       "sha256": "bbca68c72dd1c6a0ea37eb75cf779e61589ae880f1a2ba6e2b28428339381190",
       "size": [
@@ -42,7 +42,7 @@
     {
       "figure": 3,
       "file": "02-prompt-template.jpg",
-      "caption": "教师点击编辑后，页面显示本次应用使用的真实模板原文。",
+      "caption": "本次历史探究应用使用的提示词模板。",
       "source_url": "http://127.0.0.1:8080/manage",
       "sha256": "6ccbf3bd22913df1866f6e265fa1af43ebbad4634bf62372dd49e424ede06371",
       "size": [
@@ -59,7 +59,7 @@
     {
       "figure": 4,
       "file": "01-platform-templates-skills.jpg",
-      "caption": "真实技能管理区域：上传入口、标准文件格式和数学/语文内置技能。",
+      "caption": "技能上传入口、文件格式示例和内置技能。",
       "source_url": "http://127.0.0.1:8080/manage",
       "sha256": "54d3a62009e9291e6c75afa989242f78a550d0dc5aeba87afd9528c164e9e054",
       "size": [
@@ -76,7 +76,7 @@
     {
       "figure": 5,
       "file": "05-validation1-request.jpg",
-      "caption": "实际请求参数和system原文；模板验证标记可逐字核对。",
+      "caption": "请求参数及system消息中的模板正文。",
       "source_url": "http://127.0.0.1:8765/01-request.html",
       "sha256": "5c1976e55a3a83c11312ea1372a2b3915d08da9766b77b786b7ddab004044652",
       "size": [
@@ -110,7 +110,7 @@
     {
       "figure": 7,
       "file": "07-validation2-rag.jpg",
-      "caption": "实际只发送11个片段中的4个，展示引用编号、材料ID、offset与字数。",
+      "caption": "知识库切片总数与本轮发送的4个片段。",
       "source_url": "http://127.0.0.1:8765/03-knowledge.html",
       "sha256": "13bfb237f079aef606f2eaf1d63e4c0e0b9a7edd209e9b65daaff31c89f5d95a",
       "size": [
@@ -127,7 +127,7 @@
     {
       "figure": 8,
       "file": "08-validation3-skill.jpg",
-      "caption": "实际上传文件及区域映射：YAML用于元数据和路由，Markdown正文完整注入。",
+      "caption": "上传的SKILL.md与各部分在请求中的用途。",
       "source_url": "http://127.0.0.1:8765/04-skill-content.html",
       "sha256": "2050eab13d5afe4b21e129b72eb148aa66c7bf764d9fbc499251affda4dcbf45",
       "size": [
@@ -144,7 +144,7 @@
     {
       "figure": 9,
       "file": "09-validation4-execution.jpg",
-      "caption": "真实启停对照及当前route_skill源码。",
+      "caption": "技能停用前后的请求对照与route_skill源码。",
       "source_url": "http://127.0.0.1:8765/05-skill-execution.html",
       "sha256": "357e5eb0c09c1b553064c8ffd02a5bf1e74bd721ac7bb76f78dd71458cf541dc",
       "size": [
@@ -161,7 +161,7 @@
     {
       "figure": 10,
       "file": "10-validation5-tools.jpg",
-      "caption": "第一轮实际tools、tool_choice和模型产生的tool_calls。",
+      "caption": "第一轮的tools、tool_choice和模型返回的tool_calls。",
       "source_url": "http://127.0.0.1:8765/06-mcp-request.html",
       "sha256": "92b9380f65ccee459949ba787f33c247d4d72da3729d91d48d1386877fabb5fb",
       "size": [
@@ -178,7 +178,7 @@
     {
       "figure": 11,
       "file": "11-validation5-roundtrip.jpg",
-      "caption": "真实tools/call请求与1304响应、第二轮role=tool以及最终模型正文。",
+      "caption": "MCP返回1304，后端通过role=tool传给模型。",
       "source_url": "http://127.0.0.1:8765/07-mcp-result.html",
       "sha256": "70f656d9e9a2a491a0bf2977fe7afd0107631722bb48e959fca9a8aaec0feeba",
       "size": [
@@ -195,7 +195,7 @@
     {
       "figure": 12,
       "file": "12-live-chat-result.jpg",
-      "caption": "真实学生端会话正文区域，显示本次问题与工具计算结果1304。",
+      "caption": "学生端保存的提问和回答，工具计算结果为1304。",
       "source_url": "http://127.0.0.1:8080/tutor",
       "sha256": "cf8c4835163f43e55585db5e9bcfcf30817168185405e55cf54b636aa3662379",
       "size": [
