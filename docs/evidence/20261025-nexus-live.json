@@ -1694,5 +1694,29 @@
         }
       }
     ]
+  },
+  "docker_workflows": {
+    "checks": [
+      {
+        "name": "Docker unique papers, real AI grading and review",
+        "status": "PASS",
+        "scores": [
+          100.0,
+          0.0
+        ]
+      },
+      {
+        "name": "Docker MCP SDK and LangGraph tool roundtrip",
+        "status": "PASS"
+      }
+    ],
+    "tool_call_ids": [
+      "call_00_dU6cGRHhZtR3DR0WxoGB1665"
+    ],
+    "assignment_id": 1,
+    "paper_ids": [
+      1,
+      2
+    ]
   }
 }

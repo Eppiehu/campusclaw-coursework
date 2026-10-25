@@ -23,6 +23,14 @@ def main():
            'core':core,'weekly_sufficient_sample':weekly,'model_and_tool_observations':observations}
     deployed=ROOT/'apitest/report/nexus-deployed.json'
     if deployed.exists():value['docker_smoke']=json.loads(deployed.read_text(encoding='utf-8'))
+    workflows=ROOT/'apitest/report/nexus-deployed-workflows.json'
+    if workflows.exists():
+        result=json.loads(workflows.read_text(encoding='utf-8'))
+        assert all(check['status']=='PASS' for check in result['checks'])
+        calls=[event['tool_call_id'] for event in result['tool_events'] if event['event']=='tool']
+        assert calls
+        value['docker_workflows']={'checks':result['checks'],'tool_call_ids':calls,
+                                   'assignment_id':result['assignment_id'],'paper_ids':result['paper_ids']}
     encoded=json.dumps(value,ensure_ascii=False,indent=2).encode()
     for marker in [b'"Authorization"',b'"auth_token"',b'"password"',b'postgresql+psycopg://',b'sk-']:
         assert marker not in encoded,marker

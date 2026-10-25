@@ -2,6 +2,7 @@
 .env.*.local
 web/node_modules/
 web/dist/
+web/.pnpm-store/
 nexus-data/
 output/resume/
 __pycache__/
