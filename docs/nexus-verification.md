@@ -18,7 +18,7 @@
 | Docker发卷、AI批改与MCP | PASS | 两名虚构学生获不同卷，真实AI批改与教师复核通过；官方MCP SDK工具调用、结果回传通过 |
 | 公网8088访问 | PASS | 云安全组放行后，从外部验证`/health`、首页及OpenAPI均返回200 |
 | HTTPS | NOT RUN | 用户明确选择先使用IP:8088，HTTPS以后配置 |
-| GitHub Actions | PENDING | 后端已通过；前端因pnpm 11的esbuild脚本许可失败，已添加精确许可并等待远程重跑 |
+| GitHub Actions | PASS | 提交`85d3582`对应运行`40177946845`，后端测试与前端pnpm 11安装构建均成功 |
 
 ## 核心真实流程
 
