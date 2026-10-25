@@ -1,4 +1,14 @@
-# CampusClaw · AI 应用平台
+# CampusClaw Nexus 与课程平台
+
+Nexus 是本仓库中的教学业务升级版：Flask + Vue 3、PostgreSQL/pgvector、LangGraph、MCP Python SDK、Redis/RQ。新增知识缺口审核回补、同纲不同卷、异步批改与学情周报；通过 `CAMPUSCLAW_EDITION=nexus` 启动。原课程版入口和数据保留。
+
+- [Nexus 运行与隔离 Docker 部署](docs/nexus-running.md)
+- [Nexus 实施与验收范围](docs/nexus-implementation-plan.md)
+- [Nexus 实测记录](docs/nexus-verification.md)
+- [Nexus OpenSpec 变更](openspec/changes/nexus-teaching-workflows/proposal.md)
+- API 文档：Nexus 运行后的 `/api/nexus/openapi.json`
+
+## 课程版记录
 
 以用户提供的《第5课：提示词、AI技能与流式会话》正文为基础，按2026-10-21补充的课堂照片加入可复用提示词模板、标准SKILL.md及MCP外部工具。
 

@@ -1,0 +1,9 @@
+{
+  "name": "campusclaw-nexus-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {"dev":"vite --host 127.0.0.1", "build":"vue-tsc --noEmit && vite build"},
+  "dependencies": {"vue":"^3.5.0", "element-plus":"^2.11.0", "echarts":"^6.0.0"},
+  "devDependencies": {"vite":"^7.0.0", "@vitejs/plugin-vue":"^6.0.0", "typescript":"^5.9.0", "vue-tsc":"^3.0.0"}
+}

@@ -1,0 +1,84 @@
+name: campusclaw-nexus
+x-backend: &backend
+  image: campusclaw-nexus:local
+  build:
+    context: .
+    dockerfile: Dockerfile.nexus
+    args:
+      NEXUS_PIP_INDEX_URL: ${NEXUS_PIP_INDEX_URL:-https://pypi.org/simple}
+  env_file: .env.nexus.local
+  environment:
+    CAMPUSCLAW_EDITION: nexus
+    NEXUS_DATABASE_URL: postgresql+psycopg://nexus:${NEXUS_DB_PASSWORD:?Set Nexus database password}@db:5432/nexus
+    NEXUS_REDIS_URL: redis://redis:6379/0
+    EMBEDDING_CACHE_DIR: /app/nexus-data/models
+    HF_HUB_OFFLINE: "1"
+    OMP_NUM_THREADS: "1"
+  volumes:
+    - ./nexus-data/models:/app/nexus-data/models:ro
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+services:
+  api:
+    <<: *backend
+    ports:
+      - "${NEXUS_BIND_ADDRESS:-0.0.0.0}:${NEXUS_PORT:-8088}:8080"
+    mem_limit: 640m
+    cpus: 0.75
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:8080/health',timeout=5)"]
+      interval: 20s
+      timeout: 8s
+      start_period: 30s
+      retries: 6
+  worker:
+    <<: *backend
+    command: ["python","scripts/nexus_worker.py"]
+    mem_limit: 640m
+    cpus: 0.75
+  scheduler:
+    <<: *backend
+    command: ["python","scripts/nexus_scheduler.py"]
+    mem_limit: 160m
+    cpus: 0.15
+  db:
+    image: pgvector/pgvector:0.8.2-pg17
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: ${NEXUS_DB_PASSWORD:?Set Nexus database password}
+    volumes:
+      - nexus_postgres:/var/lib/postgresql/data
+    command: ["postgres","-c","shared_buffers=48MB","-c","max_connections=35","-c","work_mem=2MB"]
+    mem_limit: 224m
+    cpus: 0.5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U nexus -d nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server","--appendonly","yes","--maxmemory","48mb","--maxmemory-policy","noeviction"]
+    volumes:
+      - nexus_redis:/data
+    mem_limit: 96m
+    cpus: 0.15
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      retries: 10
+volumes:
+  nexus_postgres:
+  nexus_redis:

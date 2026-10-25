@@ -1,4 +1,9 @@
 .env
+.env.*.local
+web/node_modules/
+web/dist/
+nexus-data/
+output/resume/
 __pycache__/
 .pytest_cache/
 data/

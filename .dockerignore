@@ -1,4 +1,10 @@
 .env
+.env.*
+tmp/
+apitest/report/
+output/
+web/node_modules/
+nexus-data/
 _vendor/
 data/
 uploads/

@@ -8,6 +8,9 @@ from . import db
 
 
 def create_app(test_config=None):
+    if os.environ.get('CAMPUSCLAW_EDITION') == 'nexus' or (test_config or {}).get('NEXUS'):
+        from .nexus import create_app as create_nexus_app
+        return create_nexus_app(test_config)
     app = Flask(__name__)
     secret = os.environ.get("SECRET_KEY")
     if not secret and not (test_config and test_config.get("SECRET_KEY")):

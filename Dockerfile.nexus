@@ -1,0 +1,17 @@
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app CAMPUSCLAW_EDITION=nexus \
+    EMBEDDING_CACHE_DIR=/app/nexus-data/models HF_HUB_OFFLINE=1 \
+    OMP_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false
+WORKDIR /app
+COPY requirements-nexus.txt ./
+ARG NEXUS_PIP_INDEX_URL=https://pypi.org/simple
+RUN pip install --no-cache-dir --index-url "$NEXUS_PIP_INDEX_URL" -r requirements-nexus.txt
+COPY app ./app
+COPY scripts/nexus_init.py scripts/nexus_worker.py scripts/nexus_scheduler.py ./scripts/
+COPY migrations/nexus ./migrations/nexus
+COPY alembic-nexus.ini ./
+COPY web/dist ./web/dist
+RUN useradd --uid 10001 --create-home nexus && mkdir -p /app/nexus-data && chown nexus:nexus /app/nexus-data
+USER nexus
+EXPOSE 8080
+CMD ["gunicorn","--bind","0.0.0.0:8080","--workers","1","--threads","4","--timeout","180","app:create_app()"]

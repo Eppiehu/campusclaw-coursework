@@ -1,0 +1,17 @@
+Flask>=3.1,<4
+gunicorn>=23,<24
+SQLAlchemy>=2.0,<2.1
+alembic>=1.13,<2
+psycopg[binary]>=3.2,<4
+pgvector>=0.4,<1
+redis>=5,<9
+rq>=2.6,<3
+langgraph>=1,<2
+pydantic>=2.11,<3
+mcp>=1.20,<2
+PyJWT>=2.10,<3
+httpx>=0.28,<1
+python-dotenv>=1,<2
+PyYAML>=6,<7
+fastembed>=0.7,<1
+pypdf>=6,<7
