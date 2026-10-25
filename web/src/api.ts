@@ -7,8 +7,15 @@ export async function api(path:string,method='GET',body?:unknown):Promise<any>{
   if(!response.ok)throw new Error(value.error || '请求失败')
   return value
 }
-export async function download(id:number){
+async function materialResponse(id:number){
   const response=await fetch(base+`/materials/${id}/download`,{headers:{Authorization:'Bearer '+token()},credentials:'omit'})
-  if(!response.ok)throw new Error('下载失败或无权访问')
+  if(!response.ok)throw new Error('材料不可用或无权访问')
+  return response
+}
+export async function materialText(id:number){
+  return (await materialResponse(id)).text()
+}
+export async function download(id:number){
+  const response=await materialResponse(id)
   const url=URL.createObjectURL(await response.blob());const a=document.createElement('a');a.href=url;a.download=`讲义-${id}.txt`;a.click();URL.revokeObjectURL(url)
 }
